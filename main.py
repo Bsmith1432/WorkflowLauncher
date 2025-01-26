@@ -44,8 +44,15 @@ def add_button():
             button_frame.grid_columnconfigure(0, weight=1, uniform="equal")
             button_frame.grid_columnconfigure(1, weight=1, uniform="equal")
 
+        # Set background color of window and button frame back to gray
+        window.config(bg='#c5c5c4')
+        button_frame.config(bg='#c5c5c4')
+
         # Save the button data to the file
         save_buttons()
+
+        # Update scroll region to reflect new button size
+        canvas.config(scrollregion=canvas.bbox("all"))
 
 
 # Function to delete the selected button
@@ -72,6 +79,9 @@ def delete_button():
         # Save the updated button data to the JSON file
         save_buttons()
 
+        # Update scroll region after deletion
+        canvas.config(scrollregion=canvas.bbox("all"))
+
 
 # Function to save button data to a JSON file
 def save_buttons():
@@ -95,10 +105,22 @@ window.title('Workflow Optimizer')
 window.config(bg="#c5c5c4")
 window.resizable(False, False)
 
-# Frames for better alignment
-button_frame = Frame(window, bg="#c5c5c4")
-button_frame.pack(fill=BOTH, expand=True, padx=20, pady=20)
+# Create a Canvas for scrolling
+canvas = Canvas(window)
+canvas.pack(fill=BOTH, expand=True)
 
+# Create a vertical scrollbar for the canvas
+scrollbar = Scrollbar(canvas, orient=VERTICAL, command=canvas.yview)
+scrollbar.pack(side=RIGHT, fill=Y)
+
+# Create a frame to contain the buttons and allow scrolling
+button_frame = Frame(canvas, bg="#c5c5c4")
+canvas.create_window((0, 0), window=button_frame, anchor=NW)
+
+# Configure the scrollbar to control the canvas
+canvas.config(yscrollcommand=scrollbar.set)
+
+# Frames for the input section
 input_frame = Frame(window, bg="#c5c5c4")
 input_frame.pack(side=BOTTOM, fill=X, padx=20, pady=10)  # Position at the bottom
 
@@ -120,8 +142,15 @@ for text, url in button_data:
     buttons.append(new_button)  # Add the button to the list for tracking
 
 # Initialize Listbox for Deletion
-button_listbox = Listbox(input_frame, height=4, width=30, font=('Perpetua', 12))
+button_listbox = Listbox(input_frame, height=6, width=30, font=('Perpetua', 12))
 button_listbox.grid(row=1, column=2, rowspan=2, padx=5)
+
+# Add a scrollbar for the Listbox
+listbox_scrollbar = Scrollbar(input_frame, orient=VERTICAL, command=button_listbox.yview)
+listbox_scrollbar.grid(row=1, column=3, rowspan=2, sticky='ns')
+
+# Link the scrollbar to the Listbox
+button_listbox.config(yscrollcommand=listbox_scrollbar.set)
 
 # Update the Listbox for Deleting
 for text, _ in button_data:
@@ -158,6 +187,14 @@ delete_button_btn = Button(input_frame, text="Delete Button", font=('Perpetua', 
                            bg='#e64a19', fg='white', activebackground='white',
                            activeforeground='#e64a19', command=delete_button)
 delete_button_btn.grid(row=3, column=2, pady=10)
+
+
+# Update scroll region whenever the window is resized
+def update_scroll_region(event):
+    canvas.config(scrollregion=canvas.bbox("all"))
+
+
+canvas.bind("<Configure>", update_scroll_region)
 
 # Main Loop
 window.mainloop()
