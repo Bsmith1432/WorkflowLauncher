@@ -65,8 +65,11 @@ def delete_button():
         # Remove the button from the Listbox
         button_listbox.delete(selected_index)
 
-        # Remove the button data from the list and save it
-        button_data.remove((button_text, url))
+        # Remove the button data from the list
+        global button_data
+        button_data = [data for data in button_data if data[0] != button_text]
+
+        # Save the updated button data to the JSON file
         save_buttons()
 
 
